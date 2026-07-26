@@ -1,0 +1,287 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  </head>
+  <body class="bg-blue-50">
+    <section class="min-h-screen flex items-center justify-center container p-5 sm:p-0 mt-5 sm:mt-0">
+        <div>
+            <!-- Heading -->
+            <h2 class="text-3xl text-center">AquaPlane Profit Calculator</h2>
+
+            <!-- Tabs -->
+            <div x-data="calculator()" class="bg-white rounded-3xl shadow-xl overflow-hidden max-w-5xl w-full mt-8 sm:mt-4 mb-10">
+                <div class="flex border-b border-gray-300">
+                    <button 
+                        @click = "changeProduct('standard')"
+                        class="flex-1 py-4 text-center font-medium cursor-pointer transition-colors" 
+                        :class="selected === 'standard' ? 'bg-sky-600 text-white' : 'text-gray-500 hover:text-gray-700 hover:bg-sky-50' ">
+                        Standard
+                    </button>
+                    <button 
+                        @click = "changeProduct('premium')"
+                        :class="selected === 'premium' ? 'bg-sky-600 text-white' : 'text-gray-500 hover:text-gray-700 hover:bg-sky-50' "
+                        class="flex-1 py-3 text-center font-medium cursor-pointer transition-colors">
+                        Premium
+                    </button>
+                </div>
+
+                <div class="p-4 sm:p-8">
+                    <div class="flex justify-between items-center bg-gray-100 p-3 rounded-md">
+                        <div>
+                            <h2 x-text="product.name" class="text-3xl font-bold"></h2>
+                            <p class="text-gray-500 mt-2">
+                                Purchase Price
+                                <span class="font-semibold" x-text=" '$'+product.price.toLocaleString() "></span>
+                                • Rental
+                                <span class="font-semibold" x-text=" '$'+product.rent+'/day' "></span>
+                            </p>
+                        </div>
+                        <div class="bg-green-100 text-green-700 px-5 py-3 rounded-xl">
+                            Break-even
+                            <div class="text-2xl font-bold"><span x-text="breakEvenDays"></span> Days</div>
+                        </div>
+                    </div>
+                    <!-- <hr> -->
+
+                    <!-- Days Slider -->
+                    <div class="mt-8">
+                        <div class="flex justify-between mb-2">
+                            <span class="font-medium">Rental Days</span>
+                            <span x-text=" days + ' Days' "></span>
+                        </div>
+                        <input type="range" min="1" max="365" class="w-full cursor-pointer" x-model="days">
+                    </div>
+
+                    <!-- Rent Amount -->
+                    <div class="mt-8">
+                        <label class="block mb-2 font-medium">Rental Per Day($)</label>
+                        <input type="number" x-model="rent" class="border rounded-xl w-full p-3">
+                    </div>
+
+                    <!-- Cards -->
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-5 mt-8">
+                        <div class="bg-red-50 rounded-2xl p-3 sm:p-6 border border-red-300">
+                            <p class="text-gray-500">Revenue</p>
+                            <h3 class="text-3xl font-bold mt-2">$<span x-text="revenue.toLocaleString()"></span></h3>
+                        </div>
+                        <div class="bg-green-50 rounded-2xl p-3 sm:p-6 border border-green-300">
+                            <p class="text-gray-500">Net Profit</p>
+                            <h3 class="text-3xl font-bold mt-2" :class="profit>0 ? 'text-green-500' : 'text-red-500' ">$<span x-text="profit.toLocaleString()"></span></h3>
+                        </div>
+                        <div class="bg-yellow-50 rounded-2xl p-3 sm:p-6 border border-yellow-400">
+                            <p class="text-gray-500">ROI</p>
+                            <h3 class="text-3xl font-bold mt-2"><span x-text="roi""></span>%</h3>
+                        </div>
+                    </div>
+                </div>
+
+            </div>            
+        </div>
+    </section>
+
+    <!-- <div x-data="calculato()" class="bg-white rounded-3xl shadow-2xl overflow-hidden max-w-5xl w-full">
+        <div class="flex border-b">
+
+            <button
+                @click="changeProduct('standard')"
+                class="flex-1 py-4 font-semibold transition"
+                :class="selected=='standard'
+                    ? 'bg-sky-600 text-white'
+                    : 'bg-white hover:bg-sky-50'">
+
+                Standard
+            </button>
+
+            <button
+                @click="changeProduct('premium')"
+                class="flex-1 py-4 font-semibold transition"
+                :class="selected=='premium'
+                    ? 'bg-sky-600 text-white'
+                    : 'bg-white hover:bg-sky-50'">
+
+                Premium
+            </button>
+
+        </div>
+
+        <div class="p-8">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h2 class="text-3xl font-bold" x-text="product.name"></h2>
+                    <p class="text-gray-500 mt-2">
+                        Purchase Price
+                        <span class="font-semibold" x-text="'$'+product.price.toLocaleString()"></span>
+                        • Rental
+                        <span class="font-semibold" x-text="'$'+product.rent+'/day'"></span>
+                    </p>
+                </div>
+
+                <div class="bg-green-100 text-green-700 px-5 py-3 rounded-xl">
+
+                    Break-even
+
+                    <div class="text-2xl font-bold">
+
+                        <span x-text="breakEvenDays"></span> Days
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="mt-10">
+                <div class="flex justify-between mb-2">
+                    <span class="font-medium">Rental Days</span>
+                    <span class="font-bold text-sky-600" x-text="days + ' Days'"></span>
+                </div>
+                <input type="range" min="1" max="365" x-model="days" class="w-full">
+            </div>
+
+            <div class="mt-8">
+                <label class="block mb-2 font-medium">Rental Price Per Day </label>
+                <input type="number" x-model="rent" class="border rounded-xl w-full p-3">
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-6 mt-10">
+                <div class="bg-blue-50 rounded-2xl p-6">
+                    <p class="text-gray-500">Revenue</p>
+                    <h3 class="text-3xl font-bold mt-2">$<span x-text="revenue.toLocaleString()"></span></h3>
+                </div>
+
+                <div class="bg-green-50 rounded-2xl p-6">
+                    <p class="text-gray-500">Net Profit</p>
+                    <h3 class="text-3xl font-bold mt-2"
+                        :class="profit>=0 ? 'text-green-600': 'text-red-600'">$<span x-text="profit.toLocaleString()"></span>
+                    </h3>
+                </div>
+
+                <div class="bg-yellow-50 rounded-2xl p-6">
+                    <p class="text-gray-500">ROI</p>
+                    <h3 class="text-3xl font-bold mt-2"><span x-text="roi"></span>% </h3>
+                </div>
+            </div>
+
+            <div class="mt-10">
+                <div class="flex justify-between">
+                    <span class="font-medium">
+                        Investment Recovery
+                    </span>
+                    <span class="font-semibold">
+                        <span x-text="progress"></span>%
+                    </span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-4 mt-3">
+                    <div
+                        class="bg-green-500 h-4 rounded-full transition-all duration-500"
+                        :style="'width:'+progress+'%'">
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-12">
+                <h3 class="font-bold text-xl mb-5">
+                    Milestones
+                </h3>
+                <div class="space-y-3">
+                    <template x-for="mile in milestones">
+                        <div class="border rounded-xl p-4 flex justify-between">
+                            <div>
+                                <div class="font-semibold">
+                                    <span x-text="mile.days"></span> Rental Days
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                Revenue:
+                                <strong>$<span x-text="mile.revenue.toLocaleString()"></span></strong>
+                                <br>
+                                Profit:
+                                <strong>$<span x-text="mile.profit.toLocaleString()"></span></strong>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </div>
+        
+    </div> -->
+
+
+
+
+    <script>
+    function calculator(){
+        return{
+            selected:'standard',
+            products:{
+                standard:{
+                    name:'Standard',
+                    price:7000,
+                    rent:200
+                },
+
+                premium:{
+                    name:'Premium',
+                    price:13000,
+                    rent:300
+                }
+            },
+
+            product:{},
+            days:50,
+            rent:200,
+
+            init(){
+                this.changeProduct('standard');
+            },
+
+            changeProduct(type){
+                this.selected=type;
+                this.product=this.products[type];
+                this.rent=this.product.rent;
+            },
+
+            get revenue(){
+                return this.days*this.rent;
+            },
+
+            get profit(){
+                return this.revenue-this.product.price;
+            },
+
+            get roi(){
+                return ((this.profit/this.product.price)*100).toFixed(1);
+            },
+
+            get breakEvenDays(){
+                return Math.ceil(this.product.price/this.rent);
+            },
+
+            get progress(){
+                let p=(this.revenue/this.product.price)*100;
+                return Math.min(p.toFixed(0),100);
+            },
+
+            get milestones(){
+                return [
+                    50,
+                    100,
+                    150
+                ].map(day=>{
+                    return{
+                        days:day,
+                        revenue:day*this.rent,
+                        profit:(day*this.rent)-this.product.price
+                    }
+                })
+            }
+        }
+    }
+
+</script>
+  </body>
+</html>
